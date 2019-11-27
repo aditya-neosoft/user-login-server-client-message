@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<div>
+    User Login:
+    <a href="/index">Home</a>
+    {% if current_user.is_authenticated %}
+    <a href="/logout">Logout</a>
+    {% else %}
+    <a href="/login">Login</a>
+    {% endif %}
+</div>
+    <h1>Hi, {{ user.username }}!</h1>
+    <!-- {% for post in posts %}
+    <div><p>{{ post.author.username }} says: <b>{{ post.body }}</b></p></div>
+    {% endfor %} -->
+
+{% if current_user.is_authenticated %}
+<h1>Listening to server {{server_url}}<span id="wait">.</span></h1>
+  
+    <!-- <ul class=flashes>
+      <li>{{ message }}</li>
+    </ul> -->
+<div id="message">
+	
+</div>
+
+
+<div id="place_for_suggestions"></div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+<script>
+setInterval(function(){
+    $.ajax({ url: "/message", 
+    	success: function(response){
+        	$("#message").append("<span class='label label-important'>Message from server: "+response.message+'</span><br>');
+    	}, dataType: "json"});
+}, 300);
+</script>
+
+
+
+<script type="text/javascript">
+    window.dotsGoingUp = true;
+    var dots = window.setInterval( function() {
+        var wait = document.getElementById("wait");
+        if ( window.dotsGoingUp ) 
+            wait.innerHTML += ".";
+        else {
+            wait.innerHTML = wait.innerHTML.substring(1, wait.innerHTML.length);
+            if ( wait.innerHTML === "")
+                window.dotsGoingUp = true;
+        }
+        if ( wait.innerHTML.length > 2 )
+            window.dotsGoingUp = false;
+
+
+
+        }, 400);
+</script>
+</body>
+</html>
+
+{% endif %}
