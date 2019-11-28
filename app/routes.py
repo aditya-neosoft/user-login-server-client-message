@@ -1,16 +1,30 @@
 import zmq
-from flask import render_template,Flask,flash, request, redirect,url_for, json
+from flask import render_template,Flask,flash, request, redirect,url_for, json, session
 from app import app,db
 from app.forms import LoginForm, RegistrationForm
 from flask_login import current_user, login_user,logout_user
 from app.models import User
+from flask_socketio import SocketIO
+import subprocess
+from functools import wraps
 
 
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
+socketio = SocketIO(app)
+
+def login_required(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            return f(*args, **kwargs)
+        else:
+            flash("You need to login first")
+            return redirect(url_for('login'))
+
+    return wrap
 
 @app.route('/')
-@app.route('/index')
 def index():
     socket.setsockopt(zmq.SUBSCRIBE, b"")
     socket.connect('tcp://localhost:5555')
@@ -65,6 +79,7 @@ def register():
 
 
 @app.route('/message')
+@login_required
 def message():
     message = socket.recv()
 
@@ -74,3 +89,14 @@ def message():
         mimetype='application/json'
     )
     return response
+
+
+@login_required
+def messageReceived(methods=['GET', 'POST']):
+    print('message was received!!!')
+
+@login_required
+@socketio.on('my event')
+def handle_my_custom_event(json, methods=['GET', 'POST']):
+    print('received my event: '+ str(json))
+    socketio.emit('my response', json, callback=messageReceived)

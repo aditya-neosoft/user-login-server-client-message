@@ -17,50 +17,45 @@
     {% endfor %} -->
 
 {% if current_user.is_authenticated %}
-<h1>Listening to server {{server_url}}<span id="wait">.</span></h1>
-  
-    <!-- <ul class=flashes>
-      <li>{{ message }}</li>
-    </ul> -->
-<div id="message">
-	
-</div>
+    <h3 style='color: #ccc;font-size: 30px;'>No message yet..</h3>
+    <div class="message_holder"></div>
 
+    <form action="" method="POST">
+      <!-- <input type="text" class="username" placeholder="User Name"/> -->
+      <input type="text" class="message" id="typing-message" placeholder="Messages"/>
+      <input type="submit"/>
+    </form>
 
-<div id="place_for_suggestions"></div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+    <script type="text/javascript">
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-
-<script>
-setInterval(function(){
-    $.ajax({ url: "/message", 
-    	success: function(response){
-        	$("#message").append("<span class='label label-important'>Message from server: "+response.message+'</span><br>');
-    	}, dataType: "json"});
-}, 300);
-</script>
-
-
-
-<script type="text/javascript">
-    window.dotsGoingUp = true;
-    var dots = window.setInterval( function() {
-        var wait = document.getElementById("wait");
-        if ( window.dotsGoingUp ) 
-            wait.innerHTML += ".";
-        else {
-            wait.innerHTML = wait.innerHTML.substring(1, wait.innerHTML.length);
-            if ( wait.innerHTML === "")
-                window.dotsGoingUp = true;
+      socket.on( 'connect', function() {
+        socket.emit( 'my event', {
+          data: 'User Connected'
+        } )
+        var form = $( 'form' ).on( 'submit', function( e ) {
+          e.preventDefault()
+          // let user_name = $( 'input.username' ).val()
+          let user_input = $( 'input.message' ).val()
+          socket.emit( 'my event', {
+            user_name : '{{ user.username }}',
+            message : user_input
+          } )
+          $( 'input.message' ).val( '' ).focus()
+        } )
+      } )
+      socket.on( 'my response', function( msg ) {
+        console.log( msg )
+        if( typeof msg.user_name !== 'undefined' ) {
+          $( 'h3' ).remove()
+          $( 'div.message_holder' ).append( '<div><b style="color: #000">'+msg.user_name+'</b> '+msg.message+'</div>' )
         }
-        if ( wait.innerHTML.length > 2 )
-            window.dotsGoingUp = false;
-
-
-
-        }, 400);
-</script>
+      })
+    </script>
+{% endif %}
 </body>
 </html>
 
-{% endif %}
