@@ -34,7 +34,7 @@
 
       socket.on( 'connect', function() {
         socket.emit( 'my event', {
-          data: 'User Connected'
+          data: 'User Connected',user:document.domain
         } )
         var form = $( 'form' ).on( 'submit', function( e ) {
           e.preventDefault()
@@ -52,6 +52,7 @@
         if( typeof msg.user_name !== 'undefined' ) {
           $( 'h3' ).remove()
           $( 'div.message_holder' ).append( '<div><b style="color: #000">'+msg.user_name+'</b> '+msg.message+'</div>' )
+          alert('Message received');
         }
       })
     </script>
