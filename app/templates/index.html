@@ -11,12 +11,12 @@
     <a href="/login">Login</a>
     {% endif %}
 </div>
-    <h1>Hi, {{ user.username }}!</h1>
+    <h1>Hi, {{ username }}!</h1>
     <!-- {% for post in posts %}
     <div><p>{{ post.author.username }} says: <b>{{ post.body }}</b></p></div>
     {% endfor %} -->
 
-{% if current_user.is_authenticated %}
+{% if username %}
     <h3 style='color: #ccc;font-size: 30px;'>No message yet..</h3>
     <div class="message_holder"></div>
 
@@ -28,33 +28,11 @@
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script> -->
     <script type="text/javascript">
-      var socket = io.connect('http://' + document.domain + ':' + location.port);
-
-      socket.on( 'connect', function() {
-        socket.emit( 'my event', {
-          data: 'User Connected',user:document.domain
-        } )
-        var form = $( 'form' ).on( 'submit', function( e ) {
-          e.preventDefault()
-          // let user_name = $( 'input.username' ).val()
-          let user_input = $( 'input.message' ).val()
-          socket.emit( 'my event', {
-            user_name : '{{ user.username }}',
-            message : user_input
-          } )
-          $( 'input.message' ).val( '' ).focus()
-        } )
-      } )
-      socket.on( 'my response', function( msg ) {
-        console.log( msg )
-        if( typeof msg.user_name !== 'undefined' ) {
-          $( 'h3' ).remove()
-          $( 'div.message_holder' ).append( '<div><b style="color: #000">'+msg.user_name+'</b> '+msg.message+'</div>' )
-          alert('Message received');
-        }
-      })
+    	sessionStorage.setItem('token','{{token}}' );
+    	console.log(sessionStorage.getItem("token"));
+      
     </script>
 {% endif %}
 </body>

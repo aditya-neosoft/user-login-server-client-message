@@ -1,11 +1,12 @@
 import zmq
-from flask import render_template,Flask,flash, request, redirect,url_for, json, session
+from flask import render_template,Flask,flash, request, redirect,url_for, json, session,jsonify,abort
 from app import app,db
 from app.forms import LoginForm, RegistrationForm
 from flask_login import current_user, login_user,logout_user
 from app.models import User
 from flask_socketio import SocketIO
 import subprocess
+import requests
 from functools import wraps
 
 
@@ -33,27 +34,17 @@ def index():
 
 
 
-# @app.route('/login')
-# def login():
-#     form = LoginForm()
-#     return render_template('login.html', title='Sign In', form=form)
-
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
     if current_user.is_authenticated:
-
         return redirect(url_for('index'))
     form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password')
-            return redirect(url_for('login'))
-        login_user(user, remember=form.remember_me.data)
-        return redirect(url_for('index'))
+    if request.method == 'POST':
+        res = requests.post('http://10.0.28.221:5000/auth', json={"username":form.username.data,"password":form.password.data})
+        if res.ok:
+            flash('Congratulations, you are now logged in!')
+            return render_template('index.html', title='Home',username=form.username.data, token=res.json().get('access_token'),)
+
     return render_template('login.html', title='Sign In', form=form)
 
 @app.route('/logout')
@@ -68,12 +59,15 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('login'))
+        # user = User(username=form.username.data, email=form.email.data)
+        # user.set_password(form.password.data)
+        # db.session.add(user)
+        # db.session.commit()
+        
+        res = requests.post('http://10.0.28.221:5000/register', json={"username":form.username.data,"password":form.password.data,"email":form.email.data})
+        if res.ok:
+            flash('Congratulations, you are now a registered user!')
+            return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
 
@@ -91,12 +85,5 @@ def message():
     return response
 
 
-@login_required
-def messageReceived(methods=['GET', 'POST']):
-    print('message was received!!!')
 
-@login_required
-@socketio.on('my event')
-def handle_my_custom_event(json, methods=['GET', 'POST']):
-    print('received my event: '+ str(json))
-    socketio.emit('my response', json, callback=messageReceived)
+
